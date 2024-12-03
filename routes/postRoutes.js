@@ -1,27 +1,23 @@
 const express = require('express');
-const {
-  getAllPosts,
-  getPostById,
-  createPost,
-  updatePost,
-  deletePost,
-} = require('../controllers/postController');
-
 const router = express.Router();
+const postController = require('../controllers/postController');
 
-// 게시글 목록 조회
-router.get('/', getAllPosts);
+// 새 게시글 생성
+router.post('/', postController.createPost);
 
-// 게시글 상세 조회
-router.get('/:post_id', getPostById);
+// 특정 게시글 가져오기
+router.get('/:post_id', postController.getPostById);
 
-// 게시글 작성
-router.post('/', createPost);
+// 모든 게시글 가져오기
+router.get('/', postController.getAllPosts);
 
 // 게시글 수정
-router.patch('/:post_id', updatePost);
+router.patch('/:post_id', postController.editPost);
 
 // 게시글 삭제
-router.delete('/:post_id', deletePost);
+router.delete(':post_id', postController.deletePost);
+
+// 좋아요 추가
+router.patch('/:post_id/likes', postController.likePost);
 
 module.exports = router;

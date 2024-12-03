@@ -1,23 +1,15 @@
 const express = require('express');
 const {
-  signupUser,
-  updateNickname,
+  updateProfile,
   updatePassword,
-  deleteUser,
 } = require('../controllers/userController');
 
 const router = express.Router();
 
-// 회원가입
-router.post('/signup', signupUser);
-
-// 닉네임 변경
-router.patch('/:user_id', updateNickname);
+// 프로필 수정
+router.patch('/:user_id', updateProfile);
 
 // 비밀번호 변경
-router.patch('/:user_id', updatePassword);
-
-// 계정 탈퇴
-router.delete('/:user_id', deleteUser);
+router.patch('/:user_id/password', updatePassword);
 
 module.exports = router;

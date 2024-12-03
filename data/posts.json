@@ -1,0 +1,62 @@
+[
+  {
+    "post_id": 1,
+    "title": "First Post",
+    "content": "This is the first post.",
+    "author_id": 1,
+    "author_profile_url": "/assets/default-profile.jpg",
+    "author_nickname": "test",
+    "created_at": "2024-12-02T10:00:00Z",
+    "likes": 2,
+    "views": 55,
+    "comment_ids": []
+  },
+  {
+    "post_id": 2,
+    "title": "asdf",
+    "content": "asdf",
+    "author_id": 1,
+    "author_profile_url": "/assets/default-profile.jpg",
+    "author_nickname": "test",
+    "created_at": "2024-12-02T09:47:11.717Z",
+    "likes": 0,
+    "views": 5,
+    "comment_ids": []
+  },
+  {
+    "post_id": 3,
+    "title": "good",
+    "content": "nice~",
+    "author_id": 1,
+    "author_profile_url": "/assets/default-profile.jpg",
+    "author_nickname": "test",
+    "created_at": "2024-12-02T13:46:53.895Z",
+    "likes": 0,
+    "views": 7,
+    "comment_ids": []
+  },
+  {
+    "post_id": 4,
+    "title": "asdf",
+    "content": "asdf",
+    "author_id": 1,
+    "author_profile_url": "/assets/default-profile.jpg",
+    "author_nickname": "test",
+    "created_at": "2024-12-03T00:38:43.987Z",
+    "likes": 0,
+    "views": 0,
+    "comment_ids": []
+  },
+  {
+    "post_id": 5,
+    "title": "asdf",
+    "content": "dsf",
+    "image_url": null,
+    "author_id": "1",
+    "author_nickname": "헤이든",
+    "created_at": "2024-12-03T05:57:29.870Z",
+    "likes": 0,
+    "views": 2,
+    "comment_ids": []
+  }
+]

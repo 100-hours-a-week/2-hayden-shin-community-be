@@ -1,134 +1,183 @@
+const fs = require('fs');
 const path = require('path');
-const { readJSONFile, writeJSONFile } = require('../utils/fileUtils');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
 
-const USERS_FILE = path.join(__dirname, '../data/users.json');
+// 데이터 파일 경로
+const usersFilePath = path.join(__dirname, '../data/users.json');
+
+// JSON 파일 읽기
+function readUsersFromFile() {
+  const data = fs.readFileSync(usersFilePath, 'utf-8');
+  return JSON.parse(data);
+}
+
+// JSON 파일 저장
+function writeUsersToFile(users) {
+  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
+}
 
 // 회원가입
-const signupUser = (req, res) => {
-  const { nickname, email, password } = req.body;
+exports.signup = async (req, res) => {
+  const { email, password, nickname, profile_url } = req.body;
 
-  if (!nickname || !email || !password) {
-    return res.status(400).json({ message: '모든 필드를 입력해야 합니다.' });
+  if (!email || !password || !nickname) {
+    return res.status(400).json({ message: 'invalid_request', data: null });
   }
 
-  const users = readJSONFile(USERS_FILE);
-  const isEmailTaken = users.some((user) => user.email === email);
+  try {
+    const users = readUsersFromFile();
+    if (users.some((user) => user.email === email)) {
+      return res
+        .status(400)
+        .json({ message: 'email_already_exists', data: null });
+    }
 
-  if (isEmailTaken) {
-    return res.status(400).json({ message: '이미 사용 중인 이메일입니다.' });
+    // const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 암호화
+    const newUser = {
+      id: users.length + 1,
+      profile_url: profile_url || '/assets/default-profile.jpg',
+      email,
+      password,
+      nickname,
+      created_at: new Date().toISOString(),
+    };
+
+    users.push(newUser);
+    writeUsersToFile(users);
+
+    res.status(201).json({
+      message: 'register_success',
+      data: { user_id: newUser.id },
+    });
+  } catch (error) {
+    console.error('회원가입 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
   }
-
-  const newUser = {
-    id: users.length > 0 ? users[users.length - 1].id + 1 : 1,
-    nickname,
-    email,
-    password,
-    createdAt: new Date().toISOString(),
-  };
-
-  users.push(newUser);
-  writeJSONFile(USERS_FILE, users);
-  res.status(201).json(newUser);
 };
 
-// 닉네임 변경
-const updateNickname = (req, res) => {
-  const { user_id } = req.params;
-  const { nickname } = req.body;
+// 로그인
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
 
-  if (!nickname) {
-    return res.status(400).json({ message: '닉네임을 입력해주세요.' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'invalid_request', data: null });
   }
 
-  if (nickname.length > 10) {
-    return res
-      .status(400)
-      .json({ message: '닉네임은 최대 10자 까지 작성 가능합니다.' });
+  try {
+    const users = readUsersFromFile();
+    const user = users.find((user) => user.email === email);
+    if (!user) {
+      return res.status(400).json({ message: 'login_fail', data: null });
+    }
+
+    // const isPasswordMatch = await compare(password, user.password);
+
+    if (password !== user.password) {
+      return res.status(400).json({ message: 'login_fail', data: null });
+    }
+
+    // 세션 생성
+    req.session.user = { id: user.id, nickname: user.nickname };
+    res.cookie('user_session', req.sessionID, { httpOnly: true });
+
+    res.status(200).json({
+      message: 'login_success',
+      data: { nickname: user.nickname },
+    });
+  } catch (error) {
+    console.error('로그인 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
   }
+};
 
-  const users = readJSONFile(USERS_FILE);
-
-  // 닉네임 중복 검사
-  const isNicknameTaken = users.some((user) => user.nickname === nickname);
-  if (isNicknameTaken) {
-    return res.status(400).json({ message: '중복된 닉네임 입니다.' });
-  }
-
-  const userIndex = users.findIndex((user) => user.id === Number(user_id));
-  if (userIndex === -1) {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-  }
-
-  // 닉네임 변경
-  users[userIndex].nickname = nickname;
-  users[userIndex].updatedAt = new Date().toISOString();
-
-  writeJSONFile(USERS_FILE, users);
-
-  res.status(200).json({
-    message: '닉네임이 성공적으로 변경되었습니다.',
-    user: { id: users[userIndex].id, nickname: users[userIndex].nickname },
+// 로그아웃
+exports.logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: 'internal_server_error', data: null });
+    }
+    res.clearCookie('user_session');
+    res.status(204).send();
   });
 };
 
-// 비밀번호 변경
-const updatePassword = (req, res) => {
-  const { user_id } = req.params;
-  const { newPassword, confirmPassword } = req.body;
+// 사용자 정보 수정
+exports.updateProfile = (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const { new_email, new_nickname, new_profile_image } = req.body;
 
-  if (!newPassword) {
-    return res.status(400).json({ message: '비밀번호를 입력해주세요.' });
+  try {
+    const users = readUsersFromFile();
+    const user = users.find((user) => user.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'not_found', data: null });
+    }
+
+    if (new_email) user.email = new_email;
+    if (new_nickname) user.nickname = new_nickname;
+    if (new_profile_image) user.profile_url = new_profile_image;
+
+    writeUsersToFile(users);
+    res.status(200).json({ message: 'profile_updated', data: null });
+  } catch (error) {
+    console.error('사용자 정보 수정 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
   }
+};
 
-  if (!confirmPassword) {
-    return res
-      .status(400)
-      .json({ message: '비밀번호를 한번 더 입력해주세요.' });
+// 사용자 정보 수정
+exports.updatePassword = (req, res) => {
+  const userId = parseInt(req.params.userId);
+  const { new_password } = req.body;
+
+  try {
+    const users = readUsersFromFile();
+    const user = users.find((user) => user.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'not_found', data: null });
+    }
+
+    if (new_password) user.password = new_password;
+
+    writeUsersToFile(users);
+    res.status(200).json({ message: 'password_updated', data: null });
+  } catch (error) {
+    console.error('사용자 정보 수정 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
   }
-
-  // 비밀번호 확인
-  if (newPassword !== confirmPassword) {
-    return res.status(400).json({ message: '비밀번호 확인과 다릅니다.' });
-  }
-
-  // 비밀번호 유효성 검사
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-  if (!passwordRegex.test(newPassword)) {
-    return res.status(400).json({
-      message:
-        '비밀번호는 8자 이상, 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.',
-    });
-  }
-
-  const users = readJSONFile(USERS_FILE);
-
-  const userIndex = users.findIndex((user) => user.id === Number(user_id));
-  if (userIndex === -1) {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-  }
-
-  // 비밀번호 변경
-  users[userIndex].password = newPassword;
-  users[userIndex].updatedAt = new Date().toISOString();
-
-  writeJSONFile(USERS_FILE, users);
-
-  res.status(200).json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
 };
 
 // 회원 탈퇴
-const deleteUser = (req, res) => {
-  const { user_id } = req.params;
-  const users = readJSONFile(USERS_FILE);
+exports.deleteAccount = (req, res) => {
+  const { password } = req.body;
+  const userId = req.session.user?.id;
 
-  const newUsers = users.filter((u) => u.id !== Number(user_id));
-  if (users.length === newUsers.length) {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+  if (!userId) {
+    return res.status(401).json({ message: 'unauthorized', data: null });
   }
 
-  writeJSONFile(USERS_FILE, newUsers);
-  res.status(204).send();
-};
+  try {
+    const users = readUsersFromFile();
+    const userIndex = users.findIndex((user) => user.id === userId);
 
-module.exports = { signupUser, updateNickname, updatePassword, deleteUser };
+    if (
+      userIndex === -1 ||
+      !bcrypt.compareSync(password, users[userIndex].password)
+    ) {
+      return res.status(401).json({ message: 'unauthorized', data: null });
+    }
+
+    users.splice(userIndex, 1);
+    writeUsersToFile(users);
+
+    req.session.destroy();
+    res.clearCookie('user_session');
+    res.status(204).send();
+  } catch (error) {
+    console.error('회원 탈퇴 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
+  }
+};

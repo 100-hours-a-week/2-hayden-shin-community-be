@@ -1,77 +1,128 @@
-const path = require('path');
-const { readJSONFile, writeJSONFile } = require('../utils/fileUtils');
+const commentModel = require('../models/commentModel');
 
-const COMMENTS_FILE = path.join(__dirname, '../data/comments.json');
+// 댓글 생성
+exports.createComment = (req, res) => {
+  const { post_id, content } = req.body;
+  const user = req.session?.user;
 
-// 게시글 댓글 불러오기
-const getCommentsByPost = (req, res) => {
-  const { postId } = req.query;
-  const comments = readJSONFile(COMMENTS_FILE);
-
-  const filteredComments = comments.filter((c) => c.postId === Number(postId));
-  res.json(filteredComments);
-};
-
-// 댓글 작성
-const createComment = (req, res) => {
-  const { post_d, content, author } = req.body;
-
-  if (!postId || !content || !author) {
-    return res.status(400).json({ message: '모든 필드를 입력해야 합니다.' });
+  if (!user) {
+    return res.status(401).json({ message: 'unauthorized', data: null });
   }
 
-  const comments = readJSONFile(COMMENTS_FILE);
-  const newComment = {
-    id: comments.length > 0 ? comments[comments.length - 1].id + 1 : 1,
-    postId: Number(postId),
-    content,
-    author,
-    createdAt: new Date().toISOString(),
-  };
+  if (!post_id || !content) {
+    return res.status(400).json({ message: 'invalid_request', data: null });
+  }
 
-  comments.push(newComment);
-  writeJSONFile(COMMENTS_FILE, comments);
-  res.status(201).json(newComment);
+  try {
+    const comments = commentModel.readCommentsFromFile();
+
+    const newComment = {
+      comment_id: comments.length + 1,
+      post_id,
+      content,
+      created_at: new Date().toISOString(),
+      author_id: user.id,
+      author_profile_url: user.profile_image,
+      author_nickname: user.nickname,
+    };
+
+    comments.push(newComment);
+    commentModel.writeCommentsToFile(comments);
+
+    res.status(201).json({ message: 'comment_created', data: newComment });
+  } catch (error) {
+    console.error('댓글 생성 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
+  }
+};
+
+// 특정 게시글의 댓글 가져오기
+exports.getCommentsByPostId = (req, res) => {
+  const postId = parseInt(req.params.post_id);
+
+  try {
+    const comments = commentModel.readCommentsFromFile();
+    const postComments = comments.filter(
+      (comment) => comment.post_id === postId
+    );
+
+    res.status(200).json({ message: 'comments_retrieved', data: postComments });
+  } catch (error) {
+    console.error('댓글 가져오기 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
+  }
 };
 
 // 댓글 수정
-const updateComment = (req, res) => {
-  const { comment_id } = req.params;
-  const { content } = req.body;
-  const comments = readJSONFile(COMMENTS_FILE);
+exports.updateComment = (req, res) => {
+  const commentId = parseInt(req.params.comment_id, 10);
+  const { new_content } = req.body;
+  const user = req.session?.user;
 
-  const commentIndex = comments.findIndex((c) => c.id === Number(comment_id));
-  if (commentIndex === -1) {
-    return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+  if (!user) {
+    return res.status(401).json({ message: 'unauthorized', data: null });
   }
 
-  comments[commentIndex] = {
-    ...comments[commentIndex],
-    content: content || comments[commentIndex].content,
-    updatedAt: new Date().toISOString(),
-  };
+  if (!comment_id || !new_content) {
+    return res.status(400).json({ message: 'invalid_request', data: null });
+  }
 
-  writeJSONFile(COMMENTS_FILE, comments);
-  res.json(comments[commentIndex]);
+  try {
+    const comments = commentModel.readCommentsFromFile();
+
+    const comment = comments.find((c) => c.comment_id === commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'comment_not_found', data: null });
+    }
+
+    if (comment.author_id !== user.id) {
+      return res.status(403).json({ message: 'no_permission', data: null });
+    }
+
+    comment.content = new_content;
+    comment.updated_at = new Date().toISOString();
+    commentModel.writeCommentsToFile(comments);
+
+    res.status(200).json({ message: 'comment_updated', data: comment });
+  } catch (error) {
+    console.error('댓글 수정 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
+  }
 };
 
 // 댓글 삭제
-const deleteComment = (req, res) => {
-  const { comment_id } = req.params;
-  const comments = readJSONFile(COMMENTS_FILE);
+exports.deleteComment = (req, res) => {
+  const commentId = parseInt(req.params.comment_id, 10); // URL에서 comment_id를 가져옴
+  const { comment_id } = req.body;
+  const user = req.session?.user;
 
-  const newComments = comments.filter((c) => c.id !== Number(comment_id));
-  if (comments.length === newComments.length) {
-    return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+  if (!user) {
+    return res.status(401).json({ message: 'unauthorized', data: null });
   }
 
-  writeJSONFile(COMMENTS_FILE, newComments);
-  res.status(204).send();
-};
+  if (!comment_id) {
+    return res.status(400).json({ message: 'invalid_request', data: null });
+  }
 
-module.exports = {
-  getCommentsByPost,
-  createComment,
-  updateComment,
-  deleteComment,
+  try {
+    const comments = commentModel.readCommentsFromFile();
+
+    const commentIndex = comments.findIndex((c) => c.comment_id === commentId);
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: 'comment_not_found', data: null });
+    }
+
+    const comment = comments[commentIndex];
+    if (comment.author_id !== user.id) {
+      return res.status(403).json({ message: 'no_permission', data: null });
+    }
+
+    comments.splice(commentIndex, 1);
+    commentModel.writeCommentsToFile(comments);
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('댓글 삭제 실패:', error);
+    res.status(500).json({ message: 'internal_server_error', data: null });
+  }
 };
