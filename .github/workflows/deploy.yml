@@ -58,7 +58,6 @@ jobs:
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: backend
         environment_name: backend-env
-        version_label: v-${{ github.run_id }}-$(date +'%Y%m%d%H%M%S')
-        use_existing_version_if_available: true
+        version_label: v-${{ github.sha }}
         region: ap-northeast-2
         deployment_package: deploy.zip
