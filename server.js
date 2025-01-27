@@ -35,8 +35,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: false,
-      httpOnly: true, // 클라이언트에서 쿠키를 접근하지 못하도록 설정
-      sameSite: 'lax', // 크로스-도메인 요청에서 쿠키 허용
+      httpOnly: true,
+      sameSite: 'none',
       maxAge: config.session.expiresInSec,
     },
   })
