@@ -34,6 +34,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
+      domain: '.ap-northeast-2.elasticbeanstalk.com',
       secure: false,
       httpOnly: true,
       sameSite: 'none',
