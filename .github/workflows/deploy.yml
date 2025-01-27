@@ -31,24 +31,6 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    # Create .env file
-    - name: Create .env file
-      run: |
-        echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" > .env
-        echo "SESSION_EXPIRES_SEC=${{ secrets.SESSION_EXPIRES_SEC }}" >> .env
-        echo "BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}" >> .env
-        echo "CLIENT_URL=${{ secrets.CLIENT_URL }}" >> .env
-        echo "HOST_PORT=${{ secrets.HOST_PORT }}" >> .env
-        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-        echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-        echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
-        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-        echo "CDN_URL=${{ secrets.CDN_URL }}" >> .env
-        echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
-        echo "S3_BUCKET_REGION=${{ secrets.S3_BUCKET_REGION }}" >> .env
-        echo "S3_ACCESS_KEY_ID=${{ secrets.S3_ACCESS_KEY_ID }}" >> .env
-        echo "S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }}" >> .env
-
     # Build Docker image and Tag and Push Docker Image to ECR
     - name: Build, tag, and push docker image to Amazon ECR
       env:
