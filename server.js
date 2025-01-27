@@ -18,7 +18,7 @@ const app = express();
 
 // CORS 설정
 const corsOptions = {
-  origin: ['http://3.35.218.197', config.url.clientUrl],
+  origin: ['http://3.35.218.197', 'http://hayden.ap-northeast-2.elasticbeanstalk.com', config.url.clientUrl],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-USER-ID'],
   credentials: true,
