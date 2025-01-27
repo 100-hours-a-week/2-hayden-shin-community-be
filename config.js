@@ -18,7 +18,6 @@ export const config = {
     saltRounds: parseInt(required('BCRYPT_SALT_ROUNDS', 10)),
   },
   url: {
-    baseUrl: required('BASE_URL'),
     clientUrl: required('CLIENT_URL'),
   },
   host: {
