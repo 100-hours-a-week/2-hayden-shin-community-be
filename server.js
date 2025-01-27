@@ -68,6 +68,10 @@ app.get('/api', (req, res) => {
   res.send('backend is running with /api prefix 🐖');
 });
 
+app.get('/health', (req, res) => {
+  res.sendStatus(200);
+}
+
 db.getConnection().then((connection) => console.log(`✅ mariadb is connected`));
 app.listen(config.host.port, () => {
   console.log(`🚀 backend is running on port ${config.host.port}`);
