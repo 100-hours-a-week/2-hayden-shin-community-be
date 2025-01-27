@@ -22,12 +22,13 @@ const corsOptions = {
     config.url.clientUrl,
     'http://hayden.ap-northeast-2.elasticbeanstalk.com',
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-USER-ID'],
+  methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['*'], // 테스트용
   credentials: true,
 };
 
-// 세션 설정
+app.set('trust proxy', 1);
+app.use(cors(corsOptions));
 app.use(
   session({
     secret: config.session.secretKey,
@@ -44,7 +45,6 @@ app.use(
 );
 
 // 미들웨어 설정
-app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
