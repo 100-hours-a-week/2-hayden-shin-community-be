@@ -31,7 +31,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-		# Create .env file
+    # Create .env file
     - name: Create .env file
       run: |
         echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" > .env
