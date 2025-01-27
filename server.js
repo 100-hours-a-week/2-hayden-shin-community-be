@@ -18,7 +18,10 @@ const app = express();
 
 // CORS 설정
 const corsOptions = {
-  origin: ['http://3.35.218.197', 'http://hayden.ap-northeast-2.elasticbeanstalk.com', config.url.clientUrl],
+  origin: [
+    config.url.clientUrl,
+    'http://hayden.ap-northeast-2.elasticbeanstalk.com',
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-USER-ID'],
   credentials: true,
@@ -59,17 +62,17 @@ app.use('/api/auth', authRouter);
 app.use('/api/posts/:post_id/comments', commentRouter);
 app.use('/api/posts/:post_id/likes', likeRouter);
 
-app.use((req, res, next) => {
-  console.error(`404 Not Found - ${req.method} ${req.originalUrl}`);
-  res.status(404).json({ message: 'Not Found' });
-});
-
 app.get('/api', (req, res) => {
   res.send('backend is running with /api prefix 🐖');
 });
 
 app.get('/health', (req, res) => {
   res.sendStatus(200);
+});
+
+app.use((req, res, next) => {
+  console.error(`404 Not Found - ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ message: 'Not Found' });
 });
 
 db.getConnection().then((connection) => console.log(`✅ mariadb is connected`));
