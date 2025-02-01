@@ -18,6 +18,8 @@ const corsOptions = {
       config.url.clientUrl,
       'http://hayden.ap-northeast-2.elasticbeanstalk.com',
       'http://127.0.0.1:2000',
+      'http://3.36.210.212',
+      'http://43.202.235.204',
     ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
