@@ -41,7 +41,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      domain: 'hayden-server.ap-northeast-2.elasticbeanstalk.com',
+      domain: '.ap-northeast-2.elasticbeanstalk.com',
       secure: false,
       httpOnly: true,
       sameSite: 'Lax',
