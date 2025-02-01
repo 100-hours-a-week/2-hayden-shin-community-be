@@ -1,6 +1,4 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import cors from 'cors';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
@@ -11,34 +9,39 @@ import likeRouter from './router/like.js';
 import { config } from './config.js';
 import { db } from './db/database.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
 
 // CORS 설정
 const corsOptions = {
-  origin: [
-    config.url.clientUrl,
-    'http://hayden.ap-northeast-2.elasticbeanstalk.com',
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      config.url.clientUrl,
+      'http://hayden.ap-northeast-2.elasticbeanstalk.com',
+      'http://127.0.0.1:2000',
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS error: Origin ${origin} not allowed`));
+    }
+  },
   methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['*'], // 테스트용
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-USER-ID'],
   credentials: true,
 };
 
 app.set('trust proxy', 1);
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(
   session({
     secret: config.session.secretKey,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      domain: '.ap-northeast-2.elasticbeanstalk.com',
       secure: false,
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'Lax',
       maxAge: config.session.expiresInSec,
     },
   })
