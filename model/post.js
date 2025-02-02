@@ -1,12 +1,12 @@
 import { db } from '../db/database.js';
 
 const POSTS_SELECT_JOIN = `
-  SELECT p.id, p.title, p.likeCount, p.viewCount, p.commentCount, COALESCE(p.updatedAt, p.createdAt) AS createdAt, p.userId, u.username, u.url 
+  SELECT p.id, p.title, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, COALESCE(p.updatedAt, p.createdAt) AS createdAt, p.userId, u.username, u.url 
   FROM post as p 
   JOIN user as u ON p.userId = u.id
   `;
 const POST_SELECT_JOIN = `
-  SELECT p.id, p.title, p.content, p.image, p.likeCount, p.viewCount, p.commentCount, COALESCE(p.updatedAt, p.createdAt) AS createdAt, p.userId, u.username, u.url
+  SELECT p.id, p.title, p.content, p.image, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, COALESCE(p.updatedAt, p.createdAt) AS createdAt, p.userId, u.username, u.url
   FROM post AS p
   JOIN user AS u ON p.userId = u.id
 `;
@@ -85,4 +85,21 @@ export async function countLike(id, likeId) {
   return db
     .execute('SELECT likeCount FROM post WHERE id = ?', [id]) //
     .then((result) => result[0][0].likeCount);
+}
+
+export async function countDisLike(id, dislikeId) {
+  if (dislikeId) {
+    await db.execute(
+      'UPDATE post SET dislikeCount = dislikeCount - 1 WHERE id = ?',
+      [id]
+    );
+  } else {
+    await db.execute(
+      'UPDATE post SET dislikeCount = dislikeCount + 1 WHERE id = ?',
+      [id]
+    );
+  }
+  return db
+    .execute('SELECT dislikeCount FROM post WHERE id = ?', [id]) //
+    .then((result) => result[0][0].dislikeCount);
 }
