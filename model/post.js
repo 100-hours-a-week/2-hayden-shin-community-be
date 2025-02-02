@@ -87,7 +87,7 @@ export async function countLike(id, likeId) {
     .then((result) => result[0][0].likeCount);
 }
 
-export async function countDisLike(id, dislikeId) {
+export async function countDislike(id, dislikeId) {
   if (dislikeId) {
     await db.execute(
       'UPDATE post SET dislikeCount = dislikeCount - 1 WHERE id = ?',
