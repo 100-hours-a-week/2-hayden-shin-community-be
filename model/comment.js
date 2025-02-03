@@ -2,7 +2,7 @@ import { db } from '../db/database.js';
 import { countComment } from './post.js';
 
 const SELECT_JOIN = `
-  SELECT c.id, c.content, COALESCE(c.updatedAt, c.createdAt) AS createdAt, c.userId, u.username, u.url 
+  SELECT c.id, c.content, DATE_FORMAT(c.createdAt, '%Y-%m-%d %H:%i') AS createdAt, c.userId, u.username, u.url 
   FROM comment as c 
   JOIN user as u ON c.userId = u.id
   `;
