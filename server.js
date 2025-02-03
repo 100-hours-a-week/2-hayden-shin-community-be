@@ -44,8 +44,8 @@ app.use(
 );
 
 // middleware setup
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '512mb' }));
+app.use(express.urlencoded({ limit: '512mb', extended: true }));
 app.use(cookieParser());
 
 // debugging middleware
