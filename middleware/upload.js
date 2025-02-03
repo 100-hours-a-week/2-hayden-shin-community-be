@@ -28,7 +28,7 @@ const optimizeImage = async (buffer, isProfile = false) => {
   try {
     if (isProfile) {
       return sharp(buffer)
-        .resize(400, 400, { fit: 'cover' })
+        .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 80 })
         .toBuffer();
     }
