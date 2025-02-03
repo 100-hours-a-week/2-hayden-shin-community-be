@@ -5,7 +5,6 @@ export async function isDisliked(postId, userId) {
   return !!(await dislikeRepository.getByPostIdAndUserId(postId, userId));
 }
 
-// 좋아요 상태 확인
 export const getDislikeStatus = async (req, res) => {
   const postId = parseInt(req.params.post_id, 10);
   const userId = req.session?.user?.id;
@@ -22,7 +21,6 @@ export const getDislikeStatus = async (req, res) => {
   }
 };
 
-// 좋아요 추가/삭제
 export const toggleDislike = async (req, res) => {
   const postId = parseInt(req.params.post_id, 10);
   const userId = req.session?.user?.id;
@@ -46,9 +44,10 @@ export const toggleDislike = async (req, res) => {
 
     if (dislike) {
       await dislikeRepository.remove(dislike);
+      const newDislikeCount = await postRepository.getDislikeCount(postId);
       return res.status(200).json({
         message: 'dislike remove success',
-        data: { isDisliked: false, dislikeCount: post.dislikeCount - 1 },
+        data: { isDisliked: false, dislikeCount: newDislikeCount },
       });
     } else {
       const dislike = {
@@ -56,10 +55,10 @@ export const toggleDislike = async (req, res) => {
         userId,
       };
       const id = await dislikeRepository.add(dislike);
-      const dislikeCount = await postRepository.countLike(postId);
+      const newDislikeCount = await postRepository.countDislike(postId);
       return res.status(200).json({
         message: 'dislike add success',
-        data: { id, isDisliked: true, dislikeCount },
+        data: { id, isDisliked: true, dislikeCount: newDislikeCount },
       });
     }
   } catch (error) {

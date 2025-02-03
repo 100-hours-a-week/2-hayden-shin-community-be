@@ -87,19 +87,16 @@ export async function countLike(id, likeId) {
     .then((result) => result[0][0].likeCount);
 }
 
-export async function countDislike(id, dislikeId) {
-  if (dislikeId) {
-    await db.execute(
-      'UPDATE post SET dislikeCount = dislikeCount - 1 WHERE id = ?',
-      [id]
-    );
-  } else {
-    await db.execute(
-      'UPDATE post SET dislikeCount = dislikeCount + 1 WHERE id = ?',
-      [id]
-    );
-  }
+export async function countDislike(id) {
+  await db.execute(
+    'UPDATE post SET dislikeCount = (SELECT COUNT(*) FROM dislikes WHERE postId = ?) WHERE id = ?',
+    [id, id]
+  );
+  return getDislikeCount(id);
+}
+
+export async function getDislikeCount(id) {
   return db
-    .execute('SELECT dislikeCount FROM post WHERE id = ?', [id]) //
+    .execute('SELECT dislikeCount FROM post WHERE id = ?', [id])
     .then((result) => result[0][0].dislikeCount);
 }

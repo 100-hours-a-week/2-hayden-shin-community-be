@@ -1,5 +1,4 @@
 import { db } from '../db/database.js';
-import { countDislike } from './post.js';
 
 export async function getByPostIdAndUserId(postId, userId) {
   return db
@@ -21,8 +20,6 @@ export async function add(dislike) {
 }
 
 export async function remove(dislike) {
-  const { id, postId } = dislike;
-  return db
-    .execute('DELETE FROM dislikes WHERE id = ?', [id]) //
-    .then(() => countDislike(postId, id));
+  const { id } = dislike;
+  return db.execute('DELETE FROM dislikes WHERE id = ?', [id]);
 }
