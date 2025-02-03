@@ -9,6 +9,14 @@ export async function isLiked(postId, userId) {
 export const getLikeStatus = async (req, res) => {
   const postId = parseInt(req.params.post_id, 10);
   const userId = req.session?.user?.id;
+
+  if (!postId || !userId) {
+    return res.status(400).json({
+      message: 'Missing required parameters: postId or userId',
+      data: null,
+    });
+  }
+
   try {
     const likeStatus = await isLiked(postId, userId);
 

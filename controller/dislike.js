@@ -8,8 +8,16 @@ export async function isDisliked(postId, userId) {
 export const getDislikeStatus = async (req, res) => {
   const postId = parseInt(req.params.post_id, 10);
   const userId = req.session?.user?.id;
+
+  if (!postId || !userId) {
+    return res.status(400).json({
+      message: 'Missing required parameters: postId or userId',
+      data: null,
+    });
+  }
+
   try {
-    const dislikeStatus = await isDisliked(postId, userId);
+    const dislikeStatus = await isDisliked(postId, userId || null);
 
     res.status(200).json({
       message: 'dislike status retrieve success',
