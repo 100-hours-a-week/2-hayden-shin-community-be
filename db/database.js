@@ -8,6 +8,7 @@ const pool = maria.createPool({
   password: config.db.password,
   waitForConnections: true,
   connectionLimit: 10,
+  connectTimeout: 20000,
 });
 
 export const db = pool.promise();
