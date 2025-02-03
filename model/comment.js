@@ -36,7 +36,10 @@ export async function create(comment) {
 
 export async function update(content, id) {
   return db
-    .execute('UPDATE comment SET content = ? WHERE id = ?', [content, id]) //
+    .execute('UPDATE comment SET content = ?, updatedAt = NOW() WHERE id = ?', [
+      content,
+      id,
+    ]) //
     .then(() => getById(id));
 }
 

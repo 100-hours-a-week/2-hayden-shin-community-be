@@ -42,12 +42,10 @@ export async function create(post) {
 
 export async function update(title, content, image = null, id) {
   return db
-    .execute('UPDATE post SET title = ?, content = ?, image = ? WHERE id = ?', [
-      title,
-      content,
-      image,
-      id,
-    ]) //
+    .execute(
+      'UPDATE post SET title = ?, content = ?, image = ?, updatedAt = NOW() WHERE id = ?',
+      [title, content, image, id]
+    ) //
     .then(() => getById(id));
 }
 
