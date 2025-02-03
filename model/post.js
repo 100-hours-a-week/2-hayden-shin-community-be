@@ -1,12 +1,18 @@
 import { db } from '../db/database.js';
 
 const POSTS_SELECT_JOIN = `
-  SELECT p.id, p.title, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, DATE_FORMAT(COALESCE(p.updatedAt, p.createdAt), '%Y-%m-%d %H:%i') AS createdAt, p.userId, u.username, u.url 
+  SELECT p.id, p.title, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, 
+        DATE_FORMAT(p.createdAt, '%Y-%m-%d %H:%i') AS createdAt, 
+        DATE_FORMAT(p.updatedAt, '%Y-%m-%d %H:%i') AS updatedAt,
+        p.userId, u.username, u.url 
   FROM post as p 
   JOIN user as u ON p.userId = u.id
   `;
 const POST_SELECT_JOIN = `
-  SELECT p.id, p.title, p.content, p.image, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, DATE_FORMAT(COALESCE(p.updatedAt, p.createdAt), '%Y-%m-%d %H:%i') AS createdAt, DATE_FORMAT(p.updatedAt, '%Y-%m-%d %H:%i') AS updatedAt, p.userId, u.username, u.url
+  SELECT p.id, p.title, p.content, p.image, p.likeCount, p.dislikeCount, p.viewCount, p.commentCount, 
+        DATE_FORMAT(p.createdAt, '%Y-%m-%d %H:%i') AS createdAt, 
+        DATE_FORMAT(p.updatedAt, '%Y-%m-%d %H:%i') AS updatedAt,
+        p.userId, u.username, u.url
   FROM post AS p
   JOIN user AS u ON p.userId = u.id
 `;
