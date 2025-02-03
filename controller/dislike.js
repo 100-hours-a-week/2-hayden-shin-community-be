@@ -44,7 +44,7 @@ export const toggleDislike = async (req, res) => {
 
     if (dislike) {
       await dislikeRepository.remove(dislike);
-      const newDislikeCount = await postRepository.getDislikeCount(postId);
+      const newDislikeCount = await postRepository.countDislike(postId);
       return res.status(200).json({
         message: 'dislike remove success',
         data: { isDisliked: false, dislikeCount: newDislikeCount },
